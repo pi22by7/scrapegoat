@@ -1,47 +1,74 @@
-import tkinter as tk
-from tkinter import filedialog, messagebox, END
+import sys
+from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QLineEdit, QPushButton, QMessageBox, QFileDialog, \
+    QFormLayout, QVBoxLayout, QWidget, QGroupBox
+# from PyQt5.QtCore import Qt
 from scrape_engine import ScrapeEngine
 
 
-class ScrapeGUI:
-    def __init__(self, master):
-        self.master = master
-        master.title("Web Scraping Application")
+class ScrapeGUI(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Scrap")
+        self.setGeometry(100, 100, 500, 200)  # Set the window size
+
+        # Create the main widget and layout
+        main_widget = QWidget()
+        main_layout = QVBoxLayout()
+
+        # Create form layout for input elements
+        form_layout = QFormLayout()
 
         # URL input
-        self.label_url = tk.Label(master, text="Enter the URL to scrape:")
-        self.label_url.pack()
-        self.entry_url = tk.Entry(master)
-        self.entry_url.pack()
+        self.label_url = QLabel("Enter the URL to scrape:")
+        self.entry_url = QLineEdit()
+        self.entry_url.setPlaceholderText("URL")
+        form_layout.addRow(self.label_url, self.entry_url)
 
         # Element name input
-        self.label_element = tk.Label(master, text="Enter the element name:")
-        self.label_element.pack()
-        self.entry_element = tk.Entry(master)
-        self.entry_element.pack()
+        self.label_element = QLabel("Enter the element name:")
+        self.entry_element = QLineEdit()
+        self.entry_element.setPlaceholderText("Element Name")
+        form_layout.addRow(self.label_element, self.entry_element)
 
         # Class name input
-        self.label_class = tk.Label(master, text="Enter the class name (optional):")
-        self.label_class.pack()
-        self.entry_class = tk.Entry(master)
-        self.entry_class.pack()
+        self.label_class = QLabel("Enter the class name (optional):")
+        self.entry_class = QLineEdit()
+        self.entry_class.setPlaceholderText("Class Name (Optional)")
+        form_layout.addRow(self.label_class, self.entry_class)
 
         # ID name input
-        self.label_id = tk.Label(master, text="Enter the ID name (optional):")
-        self.label_id.pack()
-        self.entry_id = tk.Entry(master)
-        self.entry_id.pack()
+        self.label_id = QLabel("Enter the ID name (optional):")
+        self.entry_id = QLineEdit()
+        self.entry_id.setPlaceholderText("ID Name (Optional)")
+        form_layout.addRow(self.label_id, self.entry_id)
 
-        # Scrape button
-        self.button_scrape = tk.Button(master, text="Scrape", command=self.scrape)
-        self.button_scrape.pack()
+        # Create a group box and set the form layout as its layout
+        group_box = QGroupBox()
+        group_box.setLayout(form_layout)
+
+        # Create the scrape button
+        self.button_scrape = QPushButton("Scrape")
+        self.button_scrape.clicked.connect(self.scrape)
+
+        # Set the button background color
+        self.button_scrape.setStyleSheet("background-color: #4CAF50; color: white;")
+
+        # Add the elements to the main layout
+        main_layout.addWidget(group_box)
+        main_layout.addWidget(self.button_scrape)
+
+        # Set the main layout as the layout for the main widget
+        main_widget.setLayout(main_layout)
+
+        # Set the central widget for the main window
+        self.setCentralWidget(main_widget)
 
     def scrape(self):
         # Get user input
-        url = self.entry_url.get()
-        element_name = self.entry_element.get()
-        class_name = self.entry_class.get()
-        id_name = self.entry_id.get()
+        url = self.entry_url.text()
+        element_name = self.entry_element.text()
+        class_name = self.entry_class.text()
+        id_name = self.entry_id.text()
 
         # Create an instance of the ScrapeEngine class
         engine = ScrapeEngine()
@@ -51,23 +78,30 @@ class ScrapeGUI:
         engine.id_name = id_name
 
         # Prompt user to select output file
-        engine.filename = filedialog.asksaveasfilename(defaultextension=".csv",
-                                                       filetypes=(("CSV Files", "*.csv"), ("All Files", "*.*")))
+        file_dialog = QFileDialog()
+        file_dialog.setDefaultSuffix(".csv")
+        file_dialog.setNameFilter("CSV Files (*.csv);;All Files (*)")
+        file_dialog.setAcceptMode(QFileDialog.AcceptSave)
+        if file_dialog.exec_():
+            filenames = file_dialog.selectedFiles()
+            if filenames:
+                engine.filename = filenames[0]
 
         # Perform scraping and save to CSV
         engine.request()
-        print(engine.url, engine.element_name, engine.class_name, engine.id_name, engine.filename)
-        # engine.write_to_csv(file_name)
-        messagebox.showinfo("Scraping Complete", "Scraping has been completed successfully.")
+
+        # Show a message box indicating completion
+        QMessageBox.information(self, "Scraping Complete", "Scraping has been completed successfully.")
 
         # Clear the entry fields
-        self.entry_url.delete(0, END)
-        self.entry_element.delete(0, END)
-        self.entry_class.delete(0, END)
-        self.entry_id.delete(0, END)
+        self.entry_url.clear()
+        self.entry_element.clear()
+        self.entry_class.clear()
+        self.entry_id.clear()
 
 
 if __name__ == "__main__":
-    root = tk.Tk()
-    scrape_gui = ScrapeGUI(root)
-    root.mainloop()
+    app = QApplication(sys.argv)
+    gui = ScrapeGUI()
+    gui.show()
+    sys.exit(app.exec_())
