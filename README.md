@@ -1,4 +1,4 @@
-# Scrapegoat
+# Scraper
 
 This is a Python-based web scraping application that allows you to extract data from websites in a simple and efficient way. It provides functionality to handle links and paginations, making it easier to scrape multiple pages or follow links within a website.
 
@@ -24,12 +24,17 @@ This is a Python-based web scraping application that allows you to extract data 
    
 ## Usage
 
-1. Run the application: `python src/gui.py`
+1. Run the application: `python gui.py`
 2. Enter the URL to scrape, element name, class name (optional), and ID name (optional) in the GUI.
 3. [WIP] Optionally, select a user agent from the dropdown menu to mimic different web browsers or devices. 
 4. Click the "Scrape" button to start the scraping process.
 5. The scraped data will be saved to a CSV file in your chosen directory.
 
+
+
+## Screenshots
+
+![Screenshot](https://i.imgur.com/smkWoAz.png)
 
 
 ## Contributing
