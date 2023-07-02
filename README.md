@@ -34,7 +34,7 @@ This is a Python-based web scraping application that allows you to extract data 
 
 ## Screenshots
 
-![Screenshot](https://i.imgur.com/smkWoAz.png)
+![Screenshot](https://i.imgur.com/RBOYy8H.png)
 
 
 ## Contributing
