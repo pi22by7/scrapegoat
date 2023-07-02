@@ -1,4 +1,4 @@
-# Scraper
+# Scrapegoat
 
 This is a Python-based web scraping application that allows you to extract data from websites in a simple and efficient way. It provides functionality to handle links and paginations, making it easier to scrape multiple pages or follow links within a website.
 
