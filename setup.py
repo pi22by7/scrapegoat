@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='Scrapegoat',
-    version='0.2.0207',
+    version='0.3.0307',
     packages=[''],
     url='',
     license='GPLv3',
