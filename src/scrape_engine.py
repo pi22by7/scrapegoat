@@ -3,30 +3,41 @@ from bs4 import BeautifulSoup
 import csv
 
 
+class ScrapeEngineException(Exception):
+    pass
+
+
 class ScrapeEngine:
     def __init__(self):
-        self.element_name = "div"
-        self.class_name = "test"
-        self.id_name = "test"
-        self.url = "test"
+        self.element_name = "body"
+        self.class_name = ""
+        self.id_name = ""
+        self.url = "https://example.com"
         self.filename = "scraped.csv"
+        self.user_agent = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) " \
+                          "Chrome/47.0.2526.111 Safari/537.36"
 
     def request(self):
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 "
-                          "(KHTML, like Gecko) Chrome/47.0.2526.111 Safari/537.36"
-        }
-        req = requests.get(self.url, headers=headers)
-        soup = BeautifulSoup(req.content, 'html.parser')
-        self.find_elements(soup)
+        try:
+            headers = {
+                "User-Agent": self.user_agent
+            }
+            print(self.url, self.filename, self.user_agent, self.id_name, self.class_name, self.element_name)
+            req = requests.get(self.url, headers=headers)
+            req.raise_for_status()  # Raise an exception if the request was not successful
+            soup = BeautifulSoup(req.content, 'html.parser')
+            self.find_elements(soup)
+        except requests.RequestException as e:
+            raise ScrapeEngineException(f"Error occurred during request: {e}")
+        except Exception as e:
+            raise ScrapeEngineException(f"An error occurred: {e}")
 
     def find_elements(self, soup):
         results = []
         elements = []
 
         if not self.element_name:
-            print("Element name is required.")
-            return
+            raise ScrapeEngineException("Element name is required.")
 
         elements += soup.find_all(self.element_name)
 
@@ -42,21 +53,26 @@ class ScrapeEngine:
             ]
 
         for element in elements:
-            result = {'text': element.text}
+            result = {'scraped data': element.text}
             results.append(result)
 
         self.write_to_csv(results, self.filename)
 
     @staticmethod
     def write_to_csv(results, name):
-        file_name = name
-        fieldnames = results[0].keys() if results else []
+        try:
+            file_name = name
+            fieldnames = results[0].keys() if results else []
 
-        with open(file_name, 'a', encoding='utf-8', newline='') as file:
-            writer = csv.DictWriter(file, fieldnames)
-            if file.tell() == 0:
-                writer.writeheader()
-            writer.writerows(results)
+            with open(file_name, 'a', encoding='utf-8', newline='') as file:
+                writer = csv.DictWriter(file, fieldnames)
+                if file.tell() == 0:
+                    writer.writeheader()
+                writer.writerows(results)
+        except IOError as e:
+            raise ScrapeEngineException(f"Error occurred while writing to CSV: {e}")
+        except Exception as e:
+            raise ScrapeEngineException(f"An error occurred: {e}")
 
 
 if __name__ == "__main__":

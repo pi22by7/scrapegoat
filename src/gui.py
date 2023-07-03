@@ -1,8 +1,15 @@
-import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QLineEdit, QPushButton, QMessageBox, QFileDialog, \
-    QFormLayout, QVBoxLayout, QWidget, QGroupBox
-# from PyQt5.QtCore import Qt
-from scrape_engine import ScrapeEngine
+    QFormLayout, QVBoxLayout, QWidget, QGroupBox, QComboBox
+import sys
+import json
+from scrape_engine import ScrapeEngine, ScrapeEngineException
+
+
+def load_user_agents(filename):
+    with open(filename, 'r') as file:
+        data = json.load(file)
+        user_agents = data.get("user_agents", [])
+        return user_agents
 
 
 class ScrapeGUI(QMainWindow):
@@ -42,6 +49,14 @@ class ScrapeGUI(QMainWindow):
         self.entry_id.setPlaceholderText("ID Name (Optional)")
         form_layout.addRow(self.label_id, self.entry_id)
 
+        # User agent dropdown
+        self.label_user_agent = QLabel("Select User Agent:")
+        self.combo_user_agent = QComboBox()
+        form_layout.addRow(self.label_user_agent, self.combo_user_agent)
+
+        self.user_agents = load_user_agents("src/user_agents.json")
+        self.combo_user_agent.addItems(self.user_agents)
+
         # Create a group box and set the form layout as its layout
         group_box = QGroupBox()
         group_box.setLayout(form_layout)
@@ -69,6 +84,7 @@ class ScrapeGUI(QMainWindow):
         element_name = self.entry_element.text()
         class_name = self.entry_class.text()
         id_name = self.entry_id.text()
+        user_agent = self.combo_user_agent.currentText()
 
         # Create an instance of the ScrapeEngine class
         engine = ScrapeEngine()
@@ -76,28 +92,34 @@ class ScrapeGUI(QMainWindow):
         engine.element_name = element_name
         engine.class_name = class_name
         engine.id_name = id_name
+        engine.user_agent = user_agent
 
-        # Prompt user to select output file
-        file_dialog = QFileDialog()
-        file_dialog.setDefaultSuffix(".csv")
-        file_dialog.setNameFilter("CSV Files (*.csv);;All Files (*)")
-        file_dialog.setAcceptMode(QFileDialog.AcceptSave)
-        if file_dialog.exec_():
-            filenames = file_dialog.selectedFiles()
-            if filenames:
-                engine.filename = filenames[0]
+        try:
+            # Prompt user to select output file
+            file_dialog = QFileDialog()
+            file_dialog.setDefaultSuffix(".csv")
+            file_dialog.setNameFilter("CSV Files (*.csv);;All Files (*)")
+            file_dialog.setAcceptMode(QFileDialog.AcceptSave)
+            if file_dialog.exec_():
+                filenames = file_dialog.selectedFiles()
+                if filenames:
+                    engine.filename = filenames[0]
 
-        # Perform scraping and save to CSV
-        engine.request()
+            # Perform scraping and save to CSV
+            engine.request()
 
-        # Show a message box indicating completion
-        QMessageBox.information(self, "Scraping Complete", "Scraping has been completed successfully.")
+            # Show a message box indicating completion
+            QMessageBox.information(self, "Scraping Complete", "Scraping has been completed successfully.")
 
-        # Clear the entry fields
-        self.entry_url.clear()
-        self.entry_element.clear()
-        self.entry_class.clear()
-        self.entry_id.clear()
+            # Clear the entry fields
+            self.entry_url.clear()
+            self.entry_element.clear()
+            self.entry_class.clear()
+            self.entry_id.clear()
+
+        except ScrapeEngineException as e:
+            # Show an error message box with the exception message
+            QMessageBox.critical(self, "Scraping Error", str(e))
 
 
 if __name__ == "__main__":
